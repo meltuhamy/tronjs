@@ -1,2 +1,15 @@
-node_modules/*
+# This is downloaded seperately using 'npm install'
+node_modules/
+
+# JS files are compiled from .ts files
 *.js
+
+# Temporary files should be ignored
+*~
+
+# These files are added by Mac. Ignore them
+.DS_Store
+*.DS_Store
+
+# IDE Settings
+.idea/
