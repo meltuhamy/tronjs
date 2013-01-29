@@ -1,10 +1,9 @@
+// TODO : MID WAY THROUGH PLAYER CLASS, FINISH DECOUPLING PLAYER.
+
 var SPEED = 30.0;
 var TILESIZE = 5;
 var DIRECTIONS = {RIGHT:0,UP:1,LEFT:2,DOWN:3};
 
-var x;
-var y; 
-var direction;
 var mapArray;
 var canvas;
 var context;
@@ -12,6 +11,44 @@ var loops = 0;
 var skipTicks = 1000 / SPEED;
 var maxFrameSkip = 10;
 var nextGameTick = (new Date).getTime();
+var player;
+
+class Player{
+	x: number;
+	y: number;
+	direction: number;
+	id: number;
+	mapRef: number[][];
+	constructor(startX:number, startY:number, id:number, mapRef: number[][]){
+		this.x = startX;
+		this.y = startY;
+		this.direction = DIRECTIONS.RIGHT;
+		this.id = id;
+		this.mapRef = mapRef;
+	}
+	resetPlayer(startX:number, startY:number){
+		this.x = startX;
+		this.y = startY;
+		this.direction = DIRECTIONS.RIGHT;
+	}
+	move(){
+		this.mapRef[this.x][this.y] = this.id;
+		/* Update player position */
+		if(this.direction == DIRECTIONS.RIGHT){
+			this.x+=1;
+		} else if (this.direction == DIRECTIONS.UP){
+			this.y-=1;
+		} else if (this.direction == DIRECTIONS.LEFT){
+			this.x-=1;
+		} else if (this.direction == DIRECTIONS.DOWN){
+			this.y+=1;
+		}
+		
+		/* Check for end game conditions */
+		if(this.x > canvas.width/TILESIZE-1 || this.x < 0 || this.y > canvas.height/TILESIZE-1 || this.y < 0 || mapArray[this.x][this.y] != 0)
+			resetGame();
+	}
+}
 
 
 /* Called once the body of the HTML has loaded */
@@ -19,11 +56,6 @@ function loadGame(){
 	/* Initialise draw object variables */
 	canvas = document.getElementById("game");
 	context = canvas.getContext("2d");
-
-	/* Initialise player variables */
-	x = (canvas.width/TILESIZE)/2;
-	y = (canvas.height/TILESIZE)/2;
-	direction = DIRECTIONS.RIGHT;
 
 	/* Initialise array of covered squares */
 	mapArray = new Array(canvas.width/TILESIZE);
@@ -34,6 +66,11 @@ function loadGame(){
 		}
 	}
 
+	/* Initialise player variables */
+	var x = (canvas.width/TILESIZE)/2;
+	var y = (canvas.height/TILESIZE)/2;
+	player = new Player(x, y, 1, mapArray);
+	
 	/* Prepare the key listener */
 	window.addEventListener('keydown',keyDownEvent,true);
 
@@ -47,41 +84,29 @@ function resetGame(){
 	skipTicks = 1000 / SPEED;
 	maxFrameSkip = 10;
 	nextGameTick = (new Date).getTime();
-	x = (canvas.width/TILESIZE)/2;
-	y = (canvas.height/TILESIZE)/2;
-	direction = DIRECTIONS.RIGHT;
 
 	for(var i = 0; i < mapArray.length; i++){
 		for(var j = 0; j < mapArray[i].length; j++){
 			mapArray[i][j] = 0;
 		}
 	}
+
+	var x = (canvas.width/TILESIZE)/2;
+	var y = (canvas.height/TILESIZE)/2;
+	player.resetPlayer(x,y);
 }
 
-/* Main game loop called 'SPEED'-times per second */
+/* Main game loop */
 function mainLoop(){
 
 	loops = 0;
 
 	/* Game Logic: Move player and update grid */
     while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
-      	mapArray[x][y] = 1;
-		if(direction == DIRECTIONS.RIGHT){
-			x+=1;
-		} else if (direction == DIRECTIONS.UP){
-			y-=1;
-		} else if (direction == DIRECTIONS.LEFT){
-			x-=1;
-		} else if (direction == DIRECTIONS.DOWN){
-			y+=1;
-		}
+      player.move();
       nextGameTick += skipTicks;
       loops++;
     }
-
-	/* Check for end game conditions */
-	if(x > canvas.width/TILESIZE-1 || x < 0 || y > canvas.height/TILESIZE-1 || y < 0 || mapArray[x][y] == 1)
-		resetGame();
 
 	/* Screen drawing code */
 	context.clearRect(0, 0, canvas.width, canvas.height);
@@ -109,34 +134,38 @@ function draw(){
 		}
 	}
 
+
+	// TODO : FIND A WAY TO DECOUPLE PLAYER FROM DRAWING
+
 	/* Draw square for current player position */
 	context.fillStyle = "#FF0000";
-	context.fillRect(x*TILESIZE,y*TILESIZE,TILESIZE,TILESIZE);
+	context.fillRect(player.x*TILESIZE,player.y*TILESIZE,TILESIZE,TILESIZE);
 }
 
-/* Key listener for keyboard input, if the game hasn't started yet (interval == null)
-   then the first key input will start the game. This is to emulate BMTron style of gameplay */
+/* Key listener for keyboard input */
 function keyDownEvent(keyEvent){
   switch (keyEvent.keyCode) {
     case 38:  /* Up arrow was pressed */
-    	if(direction != DIRECTIONS.DOWN)
-			direction = DIRECTIONS.UP;
+    	if(player.direction != DIRECTIONS.DOWN)
+			player.direction = DIRECTIONS.UP;
 		break;
     case 40:  /* Down arrow was pressed */
-    	if(direction != DIRECTIONS.UP)
-  			direction = DIRECTIONS.DOWN;
+    	if(player.direction != DIRECTIONS.UP)
+  			player.direction = DIRECTIONS.DOWN;
 		break;
     case 37:  /* Left arrow was pressed */
-    	if(direction != DIRECTIONS.RIGHT)
-  			direction = DIRECTIONS.LEFT;
+    	if(player.direction != DIRECTIONS.RIGHT)
+  			player.direction = DIRECTIONS.LEFT;
 		break;
     case 39:  /* Right arrow was pressed */
-    	if(direction != DIRECTIONS.LEFT)
-  			direction = DIRECTIONS.RIGHT;
+    	if(player.direction != DIRECTIONS.LEFT)
+  			player.direction = DIRECTIONS.RIGHT;
 		break;
   }
 }
 
+/* Function that limits how often the update loop gets called
+   (based on screen refresh rate). */
 (function() {
   var onEachFrame;
   if (window.webkitRequestAnimationFrame) {
