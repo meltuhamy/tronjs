@@ -1,1 +1,1 @@
-./node_modules/typescript/bin/tsc game.ts
+./node_modules/typescript/bin/tsc --out main.js *.ts
