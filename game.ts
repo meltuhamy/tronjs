@@ -13,6 +13,11 @@ var maxFrameSkip = 10;
 var nextGameTick = (new Date).getTime();
 var player;
 
+function drawSquare(x:number, y:number, color: string){
+  context.fillStyle = color;
+  context.fillRect(x*TILESIZE,y*TILESIZE,TILESIZE,TILESIZE);
+}
+
 
 /* Called once the body of the HTML has loaded */
 function loadGame(){
@@ -90,19 +95,15 @@ function draw(){
 
 		 	/* Draw squares that have been covered */
 			if(mapArray[i][j] == 1){
-				context.fillStyle = "#FF0000";
-				context.fillRect(i*TILESIZE,j*TILESIZE,TILESIZE,TILESIZE);
+        drawSquare(i, j, "#FF0000");
 			}
 	  
 		}
 	}
 
-
-	// TODO : FIND A WAY TO DECOUPLE PLAYER FROM DRAWING
-
 	/* Draw square for current player position */
-	context.fillStyle = "#FF0000";
-	context.fillRect(player.x*TILESIZE,player.y*TILESIZE,TILESIZE,TILESIZE);
+  drawingPoint = player.getDrawingPoint();
+  drawSquare(drawingPoint.color, drawingPoint.x, drawingPoint.y);
 }
 
 /* Key listener for keyboard input */
