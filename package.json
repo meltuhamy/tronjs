@@ -4,7 +4,9 @@
   "version": "0.0.1",
   "author": "Mohamed Eltuhamy <tuhamy@gmail.com>",
   "dependencies": {
-    "typescript": "0.8.x"
+    "typescript": "0.8.x",
+    "sockjs": "0.3.x",
+    "express": "3.1.x"
   },
   "engine": "node >= 0.4.1"
 }
